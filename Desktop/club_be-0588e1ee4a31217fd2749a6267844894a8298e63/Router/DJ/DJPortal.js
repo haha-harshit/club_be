@@ -10,7 +10,7 @@ router.post('/start', async (req, res) => {
     const { DJId, DJPortalStartTimeing, TotalSongs, price, DJPortalEndTiming } =
       req.body;
     await axios
-      .put(`http://localhost:5000/dj/updateStatus/${DJId}`, {
+      .put(`https://club-be.onrender.com/dj/updateStatus/${DJId}`, {
         statusLive: true,
       })
       .then(async (resp) => {
