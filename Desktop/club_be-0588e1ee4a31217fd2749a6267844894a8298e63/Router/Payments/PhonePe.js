@@ -1,4 +1,4 @@
-const crypto =  require('crypto');
+const crypto = require('crypto');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const paymentModal = require('../../schema/PaymentSchema');
@@ -11,63 +11,67 @@ const paymentWaitingModal = require('../../schema/PaymentWaitingSchema');
 dotenv.config();
 const salt_key = process.env.SALT_KEY;
 const merchant_id = process.env.MERCHANT_ID;
- const newPayment = async (req, res) => {
-    try {
-        const merchantTransactionId = req.body.transactionId;
-        const data = {
-            merchantId: "PGTESTPAYUAT",
-            merchantTransactionId: merchantTransactionId,
-            merchantUserId: req.body.MUID,
-            name: req.body.name,
-            amount: req.body.amount * 100,
-            redirectUrl: `https://api.clubnights.fun/pay/status/${merchantTransactionId}`,
-            redirectMode: 'POST',
-            mobileNumber: req.body.number,
-            paymentInstrument: {
-                type: 'PAY_PAGE'
-            }
-        };
-        const payload = JSON.stringify(data);
-        const payloadMain = Buffer.from(payload).toString('base64');
-        const keyIndex = 1;
-        const string = payloadMain + '/pg/v1/pay' + "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
-        const sha256 = crypto.createHash('sha256').update(string).digest('hex');
-        const checksum = sha256 + '###' + keyIndex;
+const newPayment = async (req, res) => {
+  try {
+    const merchantTransactionId = req.body.transactionId;
+    const data = {
+      merchantId: 'PGTESTPAYUAT',
+      merchantTransactionId: merchantTransactionId,
+      merchantUserId: req.body.MUID,
+      name: req.body.name,
+      amount: req.body.amount * 100,
+      redirectUrl: `https://club-be.onrender.com/pay/status/${merchantTransactionId}`,
+      redirectMode: 'POST',
+      mobileNumber: req.body.number,
+      paymentInstrument: {
+        type: 'PAY_PAGE',
+      },
+    };
+    const payload = JSON.stringify(data);
+    const payloadMain = Buffer.from(payload).toString('base64');
+    const keyIndex = 1;
+    const string =
+      payloadMain + '/pg/v1/pay' + '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';
+    const sha256 = crypto.createHash('sha256').update(string).digest('hex');
+    const checksum = sha256 + '###' + keyIndex;
 
-        const prod_URL = "https://api.phonepe.com/apis/hermes/pg/v1/pay"
-        const fake_url = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay"
-        const options = {
-            method: 'POST',
-            url: fake_url,
-            headers: {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-VERIFY': checksum
-            },
-            data: {
-                request: payloadMain
-            }
-        };
+    const prod_URL = 'https://api.phonepe.com/apis/hermes/pg/v1/pay';
+    const fake_url =
+      'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay';
+    const options = {
+      method: 'POST',
+      url: fake_url,
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-VERIFY': checksum,
+      },
+      data: {
+        request: payloadMain,
+      },
+    };
 
-        axios.request(options).then(function (response) {
-            // console.log(response.data)
-            // console.log(response.data.data.instrumentResponse.redirectInfo.url);
-            res.json({ redirectTo: response.data.data.instrumentResponse.redirectInfo.url });
-
-            // res.redirect(response.data.data.instrumentResponse.redirectInfo.url)
-        })
-        .catch(function (error) {
-            console.error(error);
+    axios
+      .request(options)
+      .then(function (response) {
+        // console.log(response.data)
+        // console.log(response.data.data.instrumentResponse.redirectInfo.url);
+        res.json({
+          redirectTo: response.data.data.instrumentResponse.redirectInfo.url,
         });
 
-    } catch (error) {
-        res.status(500).send({
-            message: error.message,
-            success: false
-        })
-    }
-}
-
+        // res.redirect(response.data.data.instrumentResponse.redirectInfo.url)
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  } catch (error) {
+    res.status(500).send({
+      message: error.message,
+      success: false,
+    });
+  }
+};
 
 // const checkStatus = async(req, res) => {
 //     const merchantTransactionId = req.params['txnId'] ;
@@ -89,38 +93,35 @@ const merchant_id = process.env.MERCHANT_ID;
 //    // CHECK PAYMENT STATUS
 //     axios.request(options).then(async(response) => {
 
-
 //     if (response.data.success === true) {
 //         const existingPayment = await paymentModal.findOne({ transactionId: merchantTransactionId, paymentstatus: true });
-    
+
 //         if (existingPayment) {
 //             return res.redirect('https://clubnights.fun/recent-transactions');
 
 //             // Payment has already been processed, no need to repeat the process
 //             // return res.status(200).json({ message: 'Payment already processed', success: true });
 //         }
-    
+
 //     try {
 //         const updatedPayment = await paymentModal.findOneAndUpdate(
 //           { transactionId: merchantTransactionId },
 //           { $set: { paymentstatus: true } },
 //           { new: true }
 //         );
-     
+
 //         if (!updatedPayment) {
 //           return res.status(404).json({ message: 'Payment not found', success: false });
 //         }
 
-
 //         const lastDJ = await DJPortalModal
 //         .findOne({ DJId: updatedPayment.djId })
 //         .sort({ date: -1 });
-    
+
 //       if (!lastDJ) {
 //         return res.status(404).json({ error: 'DJ not found' });
 //       }
 
-        
 // lastDJ.AcceptedSongs.push({
 //     songname: updatedPayment.SongReqList[0].songname,
 //     announcement: updatedPayment.SongReqList[0].announcement,
@@ -129,10 +130,10 @@ const merchant_id = process.env.MERCHANT_ID;
 //     bookingPrice: updatedPayment.SongReqList[0].bookingPrice,
 //     userMobile: updatedPayment.SongReqList[0].userMobile,
 //   });
-    
+
 //       // Save the updated DJ document
 //       const updatedDJ = await lastDJ.save();
-    
+
 //     // Find the user by mobile number
 //     const user = await userModal.findOne({ userMobile : updatedPayment.SongReqList[0].userMobile });
 
@@ -166,119 +167,138 @@ const merchant_id = process.env.MERCHANT_ID;
 //     });
 //    };
 
-
-
 const checkStatus = async (req, res) => {
-    try {
-        const merchantTransactionId = req.params['txnId'];
-        const merchantId = "PGTESTPAYUAT";
-        const keyIndex = 1;
-        const string = `/pg/v1/status/${merchantId}/${merchantTransactionId}` + "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
-        const sha256 = crypto.createHash('sha256').update(string).digest('hex');
-        const checksum = sha256 + "###" + keyIndex;
+  try {
+    const merchantTransactionId = req.params['txnId'];
+    const merchantId = 'PGTESTPAYUAT';
+    const keyIndex = 1;
+    const string =
+      `/pg/v1/status/${merchantId}/${merchantTransactionId}` +
+      '099eb0cd-02cf-4e2a-8aca-3e6c6aff0399';
+    const sha256 = crypto.createHash('sha256').update(string).digest('hex');
+    const checksum = sha256 + '###' + keyIndex;
 
-        const options = {
-            method: 'GET',
-            url: `https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status/${merchantId}/${merchantTransactionId}`,
-            headers: {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-VERIFY': checksum,
-                'X-MERCHANT-ID': `${merchantId}`
-            }
-        };
+    const options = {
+      method: 'GET',
+      url: `https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status/${merchantId}/${merchantTransactionId}`,
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-VERIFY': checksum,
+        'X-MERCHANT-ID': `${merchantId}`,
+      },
+    };
 
-        // Check payment status
-        const response = await axios.request(options);
+    // Check payment status
+    const response = await axios.request(options);
 
-        if (response.data.success === true) {
-            // Check if payment already processed
-            const existingPayment = await paymentWaitingModal.findOne({
-                'SongReqList.transactionId': merchantTransactionId
-            }).sort({date : -1});
-            const filterExist = existingPayment.SongReqList.filter((item) => item.transactionId === merchantTransactionId);
-            
-            if (filterExist[0].paymentWaitingstatus === true) {
-                // console.log(filterExist);
-                console.log("Exist pay");
-                return res.redirect('https://clubnights.fun/recent-transactions');
-            }
-         // Update payment status and sort by date descending
-       const updatedPayment = await paymentWaitingModal.findOneAndUpdate(
-      {'SongReqList.transactionId': merchantTransactionId },
-      { $set: { 'SongReqList.$.paymentWaitingstatus': true } },
-      { new: true }
-       ).sort({date: -1});
-       const getDetails = await paymentWaitingModal.findOne({ 'SongReqList.transactionId': merchantTransactionId }).sort({date:-1});
-       const filteredSongReqList = getDetails.SongReqList.filter(item => item.transactionId === merchantTransactionId);
+    if (response.data.success === true) {
+      // Check if payment already processed
+      const existingPayment = await paymentWaitingModal
+        .findOne({
+          'SongReqList.transactionId': merchantTransactionId,
+        })
+        .sort({ date: -1 });
+      const filterExist = existingPayment.SongReqList.filter(
+        (item) => item.transactionId === merchantTransactionId
+      );
 
-    //    console.log(filteredSongReqList);
-          console.log(filteredSongReqList[0].djId);
-            if (!updatedPayment) {
-                console.log("not found pay");
+      if (filterExist[0].paymentWaitingstatus === true) {
+        // console.log(filterExist);
+        console.log('Exist pay');
+        return res.redirect('https://club-be.onrender.com/recent-transactions');
+      }
+      // Update payment status and sort by date descending
+      const updatedPayment = await paymentWaitingModal
+        .findOneAndUpdate(
+          { 'SongReqList.transactionId': merchantTransactionId },
+          { $set: { 'SongReqList.$.paymentWaitingstatus': true } },
+          { new: true }
+        )
+        .sort({ date: -1 });
+      const getDetails = await paymentWaitingModal
+        .findOne({ 'SongReqList.transactionId': merchantTransactionId })
+        .sort({ date: -1 });
+      const filteredSongReqList = getDetails.SongReqList.filter(
+        (item) => item.transactionId === merchantTransactionId
+      );
 
-                return res.status(404).json({ message: 'Payment not found', success: false });
-            }
+      //    console.log(filteredSongReqList);
+      console.log(filteredSongReqList[0].djId);
+      if (!updatedPayment) {
+        console.log('not found pay');
 
-            // Find the last DJ
-            const lastDJ = await DJPortalModal.findOne({ DJId: filteredSongReqList[0].djId }).sort({ date: -1 });
+        return res
+          .status(404)
+          .json({ message: 'Payment not found', success: false });
+      }
 
-            if (!lastDJ) {
-                return res.status(404).json({ error: 'DJ not found' });
-            }
+      // Find the last DJ
+      const lastDJ = await DJPortalModal.findOne({
+        DJId: filteredSongReqList[0].djId,
+      }).sort({ date: -1 });
 
-                // Check if the same song link with the same mobile number already exists
-        const existingSong = lastDJ.AcceptedSongs.find(song => 
-            song.songlink === filteredSongReqList[0].songlink && 
-            song.userMobile === filteredSongReqList[0].userMobile 
+      if (!lastDJ) {
+        return res.status(404).json({ error: 'DJ not found' });
+      }
+
+      // Check if the same song link with the same mobile number already exists
+      const existingSong = lastDJ.AcceptedSongs.find(
+        (song) =>
+          song.songlink === filteredSongReqList[0].songlink &&
+          song.userMobile === filteredSongReqList[0].userMobile
+      );
+
+      if (existingSong) {
+        // If the same song link with the same mobile number already exists, do not save to the database
+        console.log(existingSong, 'ext');
+        return res.redirect(
+          `https://club-be.onrender.com/confirmed-list/${filteredSongReqList[0].djId}`
         );
-        
-         if (existingSong) {
-           // If the same song link with the same mobile number already exists, do not save to the database
-           console.log(existingSong,"ext");
-           return res.redirect(`https://clubnights.fun/confirmed-list/${filteredSongReqList[0].djId}`);
-        }
- 
-                 // Push accepted song to AcceptedSongs array
-                lastDJ.AcceptedSongs.push({
-                songname: filteredSongReqList[0].songname,
-                announcement: filteredSongReqList[0].announcement,
-                songlink: filteredSongReqList[0].songlink,
-                optionalurl: filteredSongReqList[0].optionalurl,
-                bookingPrice: filteredSongReqList[0].bookingPrice,
-                userMobile: filteredSongReqList[0].userMobile,
-               });
+      }
 
-            // Save the updated DJ document
-            await lastDJ.save();
+      // Push accepted song to AcceptedSongs array
+      lastDJ.AcceptedSongs.push({
+        songname: filteredSongReqList[0].songname,
+        announcement: filteredSongReqList[0].announcement,
+        songlink: filteredSongReqList[0].songlink,
+        optionalurl: filteredSongReqList[0].optionalurl,
+        bookingPrice: filteredSongReqList[0].bookingPrice,
+        userMobile: filteredSongReqList[0].userMobile,
+      });
 
-            // Find the user by mobile number
-            const user = await userModal.findOne({ userMobile: filteredSongReqList[0].userMobile });
+      // Save the updated DJ document
+      await lastDJ.save();
 
-            if (!user) {
-                console.log("no user ");
+      // Find the user by mobile number
+      const user = await userModal.findOne({
+        userMobile: filteredSongReqList[0].userMobile,
+      });
 
-                return res.redirect('https://clubnights.fun/recent-transactions');
-            }
+      if (!user) {
+        console.log('no user ');
 
-            // Add the amount to totalPayments
-            user.totalPayments += filteredSongReqList[0].bookingPrice;
+        return res.redirect('https://club-be.onrender.com/recent-transactions');
+      }
 
-            // Save the updated user
-            await user.save();
-            console.log("done pay");
+      // Add the amount to totalPayments
+      user.totalPayments += filteredSongReqList[0].bookingPrice;
 
+      // Save the updated user
+      await user.save();
+      console.log('done pay');
 
-            return res.redirect(`https://clubnights.fun/confirmed-list/${filteredSongReqList[0].djId}`);
-        } else {
-            return res.redirect(`https://clubnights.fun/failed`);
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: error.message, success: false });
+      return res.redirect(
+        `https://club-be.onrender.com/confirmed-list/${filteredSongReqList[0].djId}`
+      );
+    } else {
+      return res.redirect(`https://club-be.onrender.com/failed`);
     }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message, success: false });
+  }
 };
-
 
 // const checkStatus = async (req, res) => {
 //     try {
@@ -309,7 +329,7 @@ const checkStatus = async (req, res) => {
 //                 'SongReqList.transactionId': merchantTransactionId,
 //                 'SongReqList.paymentWaitingstatus': true
 //             }).sort({date : -1});
-            
+
 //             if (existingPayment) {
 //                 console.log("Exist pay");
 //                 return res.redirect('https://clubnights.fun/recent-transactions');
@@ -389,8 +409,7 @@ const checkStatus = async (req, res) => {
 //     }
 // };
 
-
 module.exports = {
-    newPayment,
-    checkStatus
-}
+  newPayment,
+  checkStatus,
+};
