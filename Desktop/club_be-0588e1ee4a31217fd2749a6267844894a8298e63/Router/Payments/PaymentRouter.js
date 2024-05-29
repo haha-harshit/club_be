@@ -1,5 +1,6 @@
 const express = require('express');
-const { checkStatus,newPayment } = require('./PhonePe');
+const { checkStatus, newPayment } = require('./PhonePe');
+
 const router = express();
 
 router.post('/payment', newPayment);

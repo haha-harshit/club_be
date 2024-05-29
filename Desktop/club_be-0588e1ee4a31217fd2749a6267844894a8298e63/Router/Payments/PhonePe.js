@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const paymentModal = require('../../schema/PaymentSchema');
 const DJPortalModal = require('../../schema/DJPortalSchema');
 const userModal = require('../../schema/UserSchema');
-const { v4: uuidv4 } = require('uuid'); //Importing uuidv4 for generating unique identifiers
+const { v4: uuidv4 } = require('uuid');
 const paymentWaitingModal = require('../../schema/PaymentWaitingSchema');
 
 // Load environment variables from .env file
@@ -54,8 +54,8 @@ const newPayment = async (req, res) => {
     axios
       .request(options)
       .then(function (response) {
-        // console.log(response.data)
-        // console.log(response.data.data.instrumentResponse.redirectInfo.url);
+        console.log(response.data);
+        console.log(response.data.data.instrumentResponse.redirectInfo.url);
         res.json({
           redirectTo: response.data.data.instrumentResponse.redirectInfo.url,
         });

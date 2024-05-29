@@ -18,14 +18,12 @@ router.post('/create-payment-waiting', async (req, res) => {
       paymentWaitingStartTimeing,
       paymentWaitingEndTiming,
     } = req.body;
-
+    console.log(res);
     // Send immediate response with success true
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: 'Payment waiting entry creation initiated.',
-      });
+    res.status(200).json({
+      success: true,
+      message: 'Payment waiting entry creation initiated.',
+    });
 
     // Perform processing asynchronously
     await processPaymentWaitingEntry(
