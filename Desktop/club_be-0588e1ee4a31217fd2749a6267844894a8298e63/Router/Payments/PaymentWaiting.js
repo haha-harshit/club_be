@@ -1,11 +1,10 @@
-// routes/paymentWaitingRoutes.js
-
 const express = require('express');
 const paymentWaitingModal = require('../../schema/PaymentWaitingSchema');
+const DJPortalModal = require('../../schema/DJPortalSchema'); // Ensure you import DJPortalSchema
 const axios = require('axios');
 const router = express.Router();
-
 const twilio = require('twilio');
+
 const accountSid = 'AC13b9ae29adf907af144647cd01002ee2';
 const authToken = '35175b59658900cc1f25c5cffe61f73d';
 const twilioClient = twilio(accountSid, authToken);
@@ -18,7 +17,7 @@ router.post('/create-payment-waiting', async (req, res) => {
       paymentWaitingStartTimeing,
       paymentWaitingEndTiming,
     } = req.body;
-    console.log(res);
+
     // Send immediate response with success true
     res.status(200).json({
       success: true,
@@ -33,7 +32,7 @@ router.post('/create-payment-waiting', async (req, res) => {
       paymentWaitingEndTiming
     );
   } catch (error) {
-    console.error(error);
+    console.error('Error in /create-payment-waiting:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
@@ -70,16 +69,11 @@ async function processPaymentWaitingEntry(
           }
         );
 
-        const redirectURIPromise = additionalDataPromise.then(
-          (response) => response.data.redirectTo
-        );
-
         const additionalData = await additionalDataPromise;
-        const redirectURI = await redirectURIPromise;
+        const redirectURI = additionalData.data.redirectTo;
 
         if (!userMobile) {
-          console.log('no mobile found');
-          // return res.status(400).json({ error: 'Missing "to" field in the request body' });
+          console.log('No mobile found');
         } else {
           try {
             const message = `Welcome to Club Nights. Kindly Pay your amount to play a song. This is the payment link ${redirectURI}`;
@@ -92,16 +86,15 @@ async function processPaymentWaitingEntry(
             });
 
             console.log({
-              message: 'pay link sent successfully',
+              message: 'Pay link sent successfully',
               success: true,
             });
           } catch (error) {
-            console.error(`Error sending pay link to ${to}: ${error}`);
-            // res.json({ error: 'Failed to send link', success: false });
+            console.error(`Error sending pay link to ${userMobile}: ${error}`);
           }
         }
 
-        const finalData = {
+        return {
           songname,
           songlink,
           optionalurl,
@@ -113,8 +106,6 @@ async function processPaymentWaitingEntry(
           djId: djID,
           paymentWaitingLink: redirectURI,
         };
-
-        return finalData;
       })
     );
 
@@ -124,9 +115,10 @@ async function processPaymentWaitingEntry(
       paymentWaitingEndTiming,
       djId: djID,
     });
+
+    console.log('Payment waiting entry created successfully');
   } catch (error) {
     console.error('Error processing payment waiting entry:', error);
-    // Handle error here, you might want to log it or handle it differently
   }
 }
 
@@ -227,6 +219,7 @@ router.get('/payment-waiting/:djId/:userMobile', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 router.get('/songs/:userMobile', async (req, res) => {
   const { userMobile } = req.params;
 
@@ -267,7 +260,7 @@ router.get('/payfind/:txind', async (req, res) => {
   const { txind } = req.params;
 
   try {
-    // Find documents in the paymentWaitingModal collection with the provided userMobile
+    // Find documents in the paymentWaitingModal collection with the provided transactionId
     const existingPayment = await paymentWaitingModal
       .findOne({
         'SongReqList.transactionId': txind,
